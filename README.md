@@ -16,7 +16,7 @@ About
 This contract is designed as a modified fund me. It is supposed to sign up participants for a 
 social christmas dinner (or any other dinner), while collecting payments for signing up.
 
-We try to address the following problems in the oraganization of such events:
+We try to address the following problems in the organization of such events:
 
 -   **Funding Security**: Organizing a social event is tough, people often say "we will attend" but take forever to pay their share, with our Christmas Dinner Contract we directly "force" the attendees to pay upon signup, so the host can plan properly knowing the total budget after deadline.
 -   **Organization**: Through funding security hosts will have a way easier time to arrange the event which fits the given budget. No Backsies.
