@@ -169,8 +169,8 @@ function setDeadline(uint256 _days) external onlyHost {
     if(deadlineSet) {
         revert DeadlineAlreadySet();
     } else {
-        deadline = block.timestamp + _days * 1 days;
 +       deadlineSet = true;
+        deadline = block.timestamp + _days * 1 days;
         emit DeadlineSet(deadline);
     }
 }
