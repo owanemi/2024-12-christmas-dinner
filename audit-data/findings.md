@@ -125,23 +125,23 @@ Slither, Remix IDE
 1. Follow CEI pattern (do necessary checks first, change the state, then do the interaction)
 2. Use Openzeppelin's Reentrancy Guard contract
    
-# [H-4]: Denial of service: Unrestricted Zero-Value ETH Refunds Leading to Gas Exhaustion and making contract unusable
+# [H-4]: Denial of service: No deposited ETH balance checks, leading to gas exhaustion and making contract unusable
 
-## Summary: 
-The `refund()` and internal `_refundETH()` function in the ChristmasDinner contract fails to validate refund eligibility, allowing addresses without a balance in the contract to waste gas from the contract without restrictions.
+## Summary:
+The `refund()` and internal `_refundETH()` function in the ChristmasDinner contract fails to validate refund eligibility, allowing addresses without a deposited ETH balance in the contract to waste gas from the contract without restrictions.
 
 ## Vulnerability details
-Both the internal `_refundETH()` and external `refund()` function does not check if the caller (msg.sender) is eligible for a refund. For example if their ETH balance is 0 they can unconditionally transfer 0 ETH based on the etherBalance mapping, which can waste a lot of gas.
+Both the internal `_refundETH()` and external `refund()` function does not check if the caller (msg.sender) is eligible for a refund. For example, if their deposited ETH balance is 0 they can unconditionally transfer 0 ETH based on the etherBalance mapping, which can waste a lot of gas.
 as the EVM allows for 0 value ETH transfers.
 
 ## Impact
-When a malicious user without a balance keeps calling the contract's `refund()` function, the contract will keep sending 0 ether and can eventually run out of gas. Making the entire contract unusable
+When a malicious user without a deposited ETH balance keeps calling the contract's `refund()` function, the contract will keep sending 0 ether and can eventually run out of gas. Making the entire contract unusable
 
 ## Tools Used
 Manual Review, Foundry
 
 ## Recommendations
-in the `refund()` function add a check to ensure the refundee's ETH balance is greater than 0
+in the `refund()` function add a check to ensure the refundee's deposited ETH balance is greater than 0
 
 ```diff
     function refund() external nonReentrant beforeDeadline {
@@ -152,6 +152,8 @@ in the `refund()` function add a check to ensure the refundee's ETH balance is g
         emit Refunded(msg.sender);
 }
 ```
+
+
 # [M-1] Deadline can still be updated even after it has been set
 
 ## Summary
