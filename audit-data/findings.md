@@ -63,11 +63,14 @@ function withdrawEth() public onlyHost {
 }
 ```
 # [H-3] Reentrancy vulnerability in `ChristmasDinner::refund()`
+
 ## Summary
-The `refund()` fucntion is vulnerable to Re-entrancy attacks by a malicious user. The vulnerability is caused by an incorrect implementation of the reentrancy guard modifier and failure to follow the Checks-Effects-Interactions pattern.
+
+The `refund()` fucntion is vulnerable to Re-entrancy attacks by a malicious user. The vulnerability is caused by an incorrect implementation of the `nonReentrant` modifier and failure to follow the Checks-Effects-Interactions pattern.
 
 ## Vulnerability Details
-The nonReentrant modifier is implemented incorrectly and so state changes will occur after external calls, allowing for reentrancy. Specifically:
+
+The `nonReentrant` modifier is implemented incorrectly and so state changes will occur after external calls, allowing for reentrancy. Specifically:
 
 1. The modifier never sets `locked = true`, only checks and sets it to false:
 
@@ -78,7 +81,8 @@ modifier nonReentrant() {
     locked = false; // Lock is set to false after execution
 }
 ```
-2.The refund() function performs external calls before state changes:
+
+2.The `refund()` function performs external calls before state changes:
 
 ```solidity
 function refund() external nonReentrant beforeDeadline {
@@ -88,6 +92,7 @@ function refund() external nonReentrant beforeDeadline {
     emit Refunded(msg.sender);
 }
 ```
+
 3.The `_refundETH()` function makes external calls before updating state:
 
 ```solidity
@@ -97,13 +102,14 @@ function _refundETH(address payable _to) internal {
     etherBalance[_to] = 0;         // State is updated too late
 }
 ```
+
 This allows a malicious contract to:
 
 1. Make an initial deposit to become a participant
-2. Call refund()
-3. When receiving ETH in the fallback function, call refund() again
+2. Call `refund()`
+3. When receiving ETH in the fallback function, call `refund()` again
 4. Repeat step 3 until the contract is drained
-   
+
 ## Impact
 A malicious user/contract can drain the entire ETH balance from our contract. This is a critical severity issue because
 
@@ -125,11 +131,11 @@ Slither, Remix IDE
 The `refund()` and internal `_refundETH()` function in the ChristmasDinner contract fails to validate refund eligibility, allowing addresses without a balance in the contract to waste gas from the contract without restrictions.
 
 ## Vulnerability details
-The `_refundETH` function does not check if the caller (msg.sender) is eligible for a refund. For example if their ETH balance is 0 they can unconditionally transfer 0 ETH based on the etherBalance mapping, which can waste a lot of gas.
+Both the internal `_refundETH()` and external `refund()` function does not check if the caller (msg.sender) is eligible for a refund. For example if their ETH balance is 0 they can unconditionally transfer 0 ETH based on the etherBalance mapping, which can waste a lot of gas.
 as the EVM allows for 0 value ETH transfers.
 
 ## Impact
-When a malicious user without a balance keeps calling the contract's `refundETH()` function, the contract will keep sending 0 ether and can eventually run out of gas. Making the entire contract unusable
+When a malicious user without a balance keeps calling the contract's `refund()` function, the contract will keep sending 0 ether and can eventually run out of gas. Making the entire contract unusable
 
 ## Tools Used
 Manual Review, Foundry
